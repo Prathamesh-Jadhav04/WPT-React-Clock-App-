@@ -16,6 +16,7 @@ import useClockTick from "./hooks/useClockTick.js";
 import TIME_ZONES, { getOffsetLabel } from "./data/timeZones.js";
 import TimezoneToolbar from "./Components/TimezoneToolbar.jsx";
 import ClockCard from "./Components/ClockCard.jsx";
+import { ClockIcon, TriangleMark } from "./Components/Icons.jsx";
 
 export default function App() {
   // ===== Objective 5: custom hook gives one Date that ticks every second =====
@@ -127,14 +128,7 @@ export default function App() {
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
           {/* Logo lockup: triangle mark + product name + context */}
           <div className="flex min-w-0 items-center gap-2.5">
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 76 65"
-              className="h-3.5 w-4 shrink-0 text-white"
-              fill="currentColor"
-            >
-              <path d="M37.5266 0 75.0532 65H0L37.5266 0Z" />
-            </svg>
+            <TriangleMark className="h-3.5 w-4 shrink-0 text-white" />
             <span className="text-[15px] font-semibold text-ink">Clocks</span>
             <span aria-hidden="true" className="text-ink-3">
               /
@@ -207,19 +201,7 @@ export default function App() {
           {clocks.length === 0 ? (
             // Empty state — designed, with a clear next step (no dead ends)
             <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-white/12 bg-surface px-6 py-14 text-center">
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-6 w-6 text-ink-3"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <path d="M12 6v6l4 2" />
-              </svg>
+              <ClockIcon className="h-6 w-6 text-ink-3" />
               <h2 className="mt-3 text-sm font-medium text-ink">
                 No Clocks Yet
               </h2>

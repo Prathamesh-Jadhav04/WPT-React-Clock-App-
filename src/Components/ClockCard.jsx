@@ -11,6 +11,7 @@
 //   - icon-only remove button has an aria-label (never color alone)
 //   - hover raises contrast; transitions list explicit properties only
 import React from "react";
+import { CloseIcon } from "./Icons.jsx";
 
 function ClockCard({ id, label, timeZone, offsetLabel, now, onRemove }) {
   // Format the ticking Date for THIS card's time zone (taught Intl pattern)
@@ -62,17 +63,7 @@ function ClockCard({ id, label, timeZone, offsetLabel, now, onRemove }) {
           aria-label={`Remove ${label} clock`}
           className="-mr-1 -mt-1 flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-ink-3 transition-colors duration-200 hover:bg-white/8 hover:text-[#e5484d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
         >
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            className="h-3.5 w-3.5"
-          >
-            <path d="M18 6 6 18M6 6l12 12" />
-          </svg>
+          <CloseIcon className="h-3.5 w-3.5" />
         </button>
       </div>
 

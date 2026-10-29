@@ -14,6 +14,12 @@
 //   - placeholder ends with the ellipsis character (…)
 //   - buttons keep ≥24 px hit targets, touch-action: manipulation
 import React, { useCallback, useRef } from "react";
+import {
+  ChevronDownIcon,
+  PlusIcon,
+  SuccessIcon,
+  WarningIcon,
+} from "./Icons.jsx";
 
 function TimezoneToolbar({
   zones,
@@ -72,18 +78,7 @@ function TimezoneToolbar({
               ))}
             </select>
             {/* Chevron glyph — decorative, hidden from assistive tech */}
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3"
-            >
-              <path d="m6 9 6 6 6-6" />
-            </svg>
+            <ChevronDownIcon className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
           </div>
         </div>
 
@@ -94,17 +89,7 @@ function TimezoneToolbar({
             onClick={onAdd}
             className="inline-flex h-10 cursor-pointer items-center gap-1.5 rounded-md bg-white px-4 text-sm font-medium text-black transition-colors duration-200 hover:bg-[#eaeaea] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas active:bg-[#d4d4d4]"
           >
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              className="h-4 w-4"
-            >
-              <path d="M12 5v14M5 12h14" />
-            </svg>
+            <PlusIcon className="h-4 w-4" />
             Add Clock
           </button>
           <button
@@ -130,34 +115,9 @@ function TimezoneToolbar({
             }`}
           >
             {messageKind === "warn" ? (
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="mt-0.5 h-3.5 w-3.5 shrink-0"
-              >
-                <path d="M12 9v4" />
-                <path d="M12 17h.01" />
-                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-              </svg>
+              <WarningIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             ) : (
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="mt-0.5 h-3.5 w-3.5 shrink-0"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <path d="m9 12 2 2 4-4" />
-              </svg>
+              <SuccessIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             )}
             <span>{message}</span>
           </p>
