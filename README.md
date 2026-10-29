@@ -83,6 +83,28 @@ applications:
 | Designed empty states | “No Clocks Yet” state with icon and a clear next step (no dead ends) |
 | Preload fonts | `preconnect` to `fonts.googleapis.com` + `fonts.gstatic.com` before the Geist stylesheet |
 
+## Validation Results
+
+Executed against the committed code (28-10-2026):
+
+| Check | Command | Result |
+| --- | --- | --- |
+| Production build | `npm run build` | ✅ 34 modules transformed, built in 738 ms (CSS 23.22 kB, JS 238.36 kB) |
+| Static analysis | `npm run lint` | ✅ 0 errors, 0 warnings (ESLint 9 + react-hooks) |
+| Unit tests | `npm test` | ✅ 6/6 passing (`node --test`: dataset size, entry shape, zone uniqueness, offset labels, graceful invalid-zone fallback) |
+| Served build audit | `npm run preview` + HTTP fetch | ✅ HTTP 200; Geist fonts, theme-color, Vercel blue, `:focus-visible`, reduced-motion, tabular-nums, Icons module, localStorage key, Enter-key handler, dynamic title, `aria-live`, and clock logic all confirmed present in the shipped bundles |
+
+### Manual test checklist (browser)
+
+- [ ] Select a zone → **Add Clock** → card appears and the dropdown regains focus (useRef).
+- [ ] Add 3+ clocks → every card's seconds advance in lockstep (useClockTick).
+- [ ] Re-add the same zone → warning message appears, no duplicate card.
+- [ ] Press **Enter** while the dropdown is focused → clock is added.
+- [ ] Remove one card / **Clear All** → grid updates; message auto-dismisses after 4 s.
+- [ ] Reload the page → previously added clocks are restored from localStorage.
+- [ ] Toolbar “Toolbar renders” counter stays frozen while clocks tick (useCallback + React.memo).
+- [ ] Resize to mobile width → single-column layout; keyboard Tab shows visible focus rings.
+
 ## Installation and Execution
 
 ```bash
