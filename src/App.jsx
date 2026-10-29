@@ -11,7 +11,7 @@
 // Geist type, crisp translucent borders, layered shadows, nested radii,
 // visible focus rings, polite aria-live announcements, designed empty state,
 // Title Case headings, and a "skip to content" link.
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import useClockTick from "./hooks/useClockTick.js";
 import TIME_ZONES, { getOffsetLabel } from "./data/timeZones.js";
 import TimezoneToolbar from "./Components/TimezoneToolbar.jsx";
@@ -101,6 +101,16 @@ export default function App() {
     setSelectedZone("");
     setMessage({ text: "All clocks cleared.", kind: "ok" });
   }, []);
+
+  // Auto-dismiss feedback after 4 s so stale messages don't linger.
+  // The cleanup clears the pending timer whenever a NEW message arrives.
+  useEffect(() => {
+    if (message.text === "") return undefined;
+    const timerId = setTimeout(() => {
+      setMessage({ text: "", kind: "ok" });
+    }, 4000);
+    return () => clearTimeout(timerId);
+  }, [message]);
 
   return (
     <div className="min-h-screen bg-canvas font-sans">
