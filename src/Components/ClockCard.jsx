@@ -14,22 +14,30 @@ import React from "react";
 import { CloseIcon } from "./Icons.jsx";
 
 function ClockCard({ id, label, timeZone, offsetLabel, now, onRemove }) {
-  // Format the ticking Date for THIS card's time zone (taught Intl pattern)
-  const timeText = now.toLocaleTimeString("en-IN", {
-    timeZone,
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  });
+  // Format the ticking Date for THIS card's time zone (taught Intl pattern).
+  // Guarded: a stale/invalid zone id from old saved data must degrade to a
+  // clear placeholder instead of crashing the whole dashboard.
+  let timeText = "--:--:--";
+  let dateText = "Date unavailable";
+  try {
+    timeText = now.toLocaleTimeString("en-IN", {
+      timeZone,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    });
 
-  const dateText = now.toLocaleDateString("en-IN", {
-    timeZone,
-    weekday: "short",
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+    dateText = now.toLocaleDateString("en-IN", {
+      timeZone,
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  } catch (error) {
+    console.error("Clock formatting failed for", timeZone, error);
+  }
 
   // Split "09:41:22 pm" → time + uppercase meridiem (Vercel-style hierarchy)
   const [timeMain, meridiem = ""] = timeText.split(" ");
