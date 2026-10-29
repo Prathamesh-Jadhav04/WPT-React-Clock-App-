@@ -6,6 +6,11 @@
 //   6.   useCallback + React.memo → stable handlers, fewer child re-renders
 //   7.   duplicate prevention + remove / clear all
 //   8.   responsive dashboard (Tailwind CSS v4 utilities)
+//
+// Visual language follows the Vercel Web Interface Guidelines: black canvas,
+// Geist type, crisp translucent borders, layered shadows, nested radii,
+// visible focus rings, polite aria-live announcements, designed empty state,
+// Title Case headings, and a "skip to content" link.
 import { useCallback, useRef, useState } from "react";
 import useClockTick from "./hooks/useClockTick.js";
 import TIME_ZONES, { getOffsetLabel } from "./data/timeZones.js";
@@ -19,7 +24,9 @@ export default function App() {
   // ===== App state =====
   const [clocks, setClocks] = useState([]); // added clocks
   const [selectedZone, setSelectedZone] = useState(""); // dropdown value
-  const [message, setMessage] = useState(""); // feedback line
+  // Feedback message: text + kind ("ok" | "warn") so status never relies on
+  // color alone (icon + wording carry the same meaning)
+  const [message, setMessage] = useState({ text: "", kind: "ok" });
 
   // ===== Objective 4: useRef to focus the dropdown programmatically =====
   const zoneSelectRef = useRef(null);
@@ -31,25 +38,34 @@ export default function App() {
 
   const handleZoneChange = useCallback((event) => {
     setSelectedZone(event.target.value);
-    setMessage("");
+    setMessage({ text: "", kind: "ok" });
   }, []);
 
   const handleAdd = useCallback(() => {
-    // Validation 1 — nothing selected
+    // Validation 1 — nothing selected (positive, action-guiding copy)
     if (selectedZone === "") {
-      setMessage("⚠️ Please select a time zone before clicking Add.");
+      setMessage({
+        text: "Select a time zone, then choose Add Clock.",
+        kind: "warn",
+      });
       return;
     }
 
     const entry = TIME_ZONES.find((item) => item.zone === selectedZone);
     if (!entry) {
-      setMessage("⚠️ Unknown time zone selected.");
+      setMessage({
+        text: "That time zone isn’t available. Choose one from the list.",
+        kind: "warn",
+      });
       return;
     }
 
     // Validation 2 — objective 7: prevent duplicate clocks
     if (clocks.some((clock) => clock.zone === selectedZone)) {
-      setMessage(`⚠️ The "${entry.label}" clock is already on the dashboard.`);
+      setMessage({
+        text: `${entry.label} is already on the dashboard. Select another time zone.`,
+        kind: "warn",
+      });
       return;
     }
 
@@ -64,7 +80,7 @@ export default function App() {
       },
     ]);
     setSelectedZone("");
-    setMessage(`✅ "${entry.label}" clock added.`);
+    setMessage({ text: `Added ${entry.label}.`, kind: "ok" });
 
     // Objective 4 — immediately focus the dropdown for the next selection
     if (zoneSelectRef.current) {
@@ -72,78 +88,137 @@ export default function App() {
     }
   }, [selectedZone, clocks]);
 
-  // Functional state update with spread/filter — immutable remove
+  // Functional state update with filter — immutable remove
   const handleRemove = useCallback((id) => {
     setClocks((previousClocks) =>
       previousClocks.filter((clock) => clock.id !== id)
     );
-    setMessage("🗑️ Clock removed.");
+    setMessage({ text: "Clock removed.", kind: "ok" });
   }, []);
 
   const handleClear = useCallback(() => {
     setClocks([]);
     setSelectedZone("");
-    setMessage("🗑️ All clocks cleared.");
+    setMessage({ text: "All clocks cleared.", kind: "ok" });
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-orange-950 pb-10">
-      {/* ===== Header — with a live home-time (IST) readout ===== */}
-      <header className="mb-6 border-b border-white/10 bg-black/30 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-5 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-white">
-              🕰️ React Clock App
-            </h1>
-            <p className="text-sm text-orange-300">
-              Advanced Time Zone Manager — multiple clocks, ticking live every
-              second
-            </p>
+    <div className="min-h-screen bg-canvas font-sans">
+      {/* Skip link — jumps keyboard users straight past the top bar */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-black"
+      >
+        Skip to content
+      </a>
+
+      {/* ===== Top bar — Vercel dashboard style ===== */}
+      <header className="sticky top-0 z-20 border-b border-white/8 bg-black/70 backdrop-blur-md">
+        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
+          {/* Logo lockup: triangle mark + product name + context */}
+          <div className="flex min-w-0 items-center gap-2.5">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 76 65"
+              className="h-3.5 w-4 shrink-0 text-white"
+              fill="currentColor"
+            >
+              <path d="M37.5266 0 75.0532 65H0L37.5266 0Z" />
+            </svg>
+            <span className="text-[15px] font-semibold text-ink">Clocks</span>
+            <span aria-hidden="true" className="text-ink-3">
+              /
+            </span>
+            <span className="hidden truncate text-[13px] text-ink-2 sm:inline">
+              Advanced Time Zone Manager
+            </span>
           </div>
-          <p className="font-mono text-lg font-semibold text-orange-400">
-            India{" "}
-            {now.toLocaleTimeString("en-IN", {
-              timeZone: "Asia/Kolkata",
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
-              hour12: true,
-            })}
-          </p>
+
+          {/* Live home-time pill — status dot + mono tabular readout */}
+          <div className="flex shrink-0 items-center gap-2 rounded-full border border-white/10 bg-surface py-1 pl-2.5 pr-3 text-[13px] text-ink-2">
+            <span
+              aria-hidden="true"
+              className="live-dot h-1.5 w-1.5 rounded-full bg-ok"
+            />
+            <span>IST</span>
+            <span translate="no" className="font-mono tabular-nums text-ink">
+              {now.toLocaleTimeString("en-IN", {
+                timeZone: "Asia/Kolkata",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: true,
+              })}
+            </span>
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4">
-        {/* ===== Toolbar: dropdown + Add (memoized — re-render proof) ===== */}
-        <TimezoneToolbar
-          zones={TIME_ZONES}
-          selectedZone={selectedZone}
-          onZoneChange={handleZoneChange}
-          onAdd={handleAdd}
-          onClear={handleClear}
-          clockCount={clocks.length}
-          message={message}
-          selectRef={zoneSelectRef}
-        />
-
-        {/* ===== Clock dashboard grid — responsive 1 / 2 / 3 columns ===== */}
-        <section className="mt-6">
-          <h2 className="mb-4 text-xl font-semibold text-white">
-            World Clocks{" "}
-            <span className="rounded-full bg-orange-500 px-2 py-0.5 text-sm text-white">
+      {/* ===== Main content ===== */}
+      <main
+        id="main-content"
+        className="mx-auto w-full max-w-5xl scroll-mt-16 px-4 pb-16 pt-8 sm:px-6"
+      >
+        {/* Page heading — Title Case, numeral badge for the count */}
+        <header>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-xl font-semibold tracking-tight text-ink sm:text-2xl">
+              World Clocks
+            </h1>
+            <span className="rounded-full bg-white/8 px-2 py-0.5 text-[12px] font-medium tabular-nums text-ink-2">
               {clocks.length}
             </span>
-          </h2>
-
-          {clocks.length === 0 ? (
-            // Empty state — shown until the first clock is added
-            <p className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center text-gray-300">
-              No clocks yet — pick a time zone above and click{" "}
-              <span className="font-semibold text-orange-400">+ Add Clock</span>
-              .
+            <p className="ml-auto hidden text-[13px] text-ink-3 sm:block">
+              Updates every second
             </p>
+          </div>
+          <p className="mt-1 text-[13px] text-ink-2">
+            Select a country or city time zone, then choose Add Clock.
+          </p>
+        </header>
+
+        {/* Toolbar: dropdown + Add (memoized — re-render proof) */}
+        <div className="mt-6">
+          <TimezoneToolbar
+            zones={TIME_ZONES}
+            selectedZone={selectedZone}
+            onZoneChange={handleZoneChange}
+            onAdd={handleAdd}
+            onClear={handleClear}
+            clockCount={clocks.length}
+            message={message.text}
+            messageKind={message.kind}
+            selectRef={zoneSelectRef}
+          />
+        </div>
+
+        {/* Clock dashboard grid — responsive 1 / 2 / 3 columns */}
+        <section aria-label="Added clocks" className="mt-8">
+          {clocks.length === 0 ? (
+            // Empty state — designed, with a clear next step (no dead ends)
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-white/12 bg-surface px-6 py-14 text-center">
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-6 w-6 text-ink-3"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 6v6l4 2" />
+              </svg>
+              <h2 className="mt-3 text-sm font-medium text-ink">
+                No Clocks Yet
+              </h2>
+              <p className="mt-1 max-w-xs text-[13px] text-ink-2">
+                Select a time zone above, then choose Add Clock.
+              </p>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {clocks.map((clock) => (
                 <ClockCard
                   key={clock.id}
@@ -159,36 +234,50 @@ export default function App() {
           )}
         </section>
 
-        {/* ===== Concept note — what this assignment demonstrates ===== */}
-        <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-5 text-sm text-gray-300">
-          <h3 className="mb-2 font-semibold text-orange-400">
-            Concepts demonstrated
-          </h3>
-          <ul className="list-disc space-y-1 pl-5">
-            <li>
-              <b className="text-white">useRef</b> — the dropdown is focused
-              again right after a clock is added.
-            </li>
-            <li>
-              <b className="text-white">useClockTick (custom hook)</b> — one
-              reusable ticking <code className="text-orange-300">Date</code>{" "}
-              shared by every clock.
-            </li>
-            <li>
-              <b className="text-white">useCallback + React.memo</b> — toolbar
-              and clock cards skip unnecessary re-renders while the clocks tick
-              (watch the render counter in the toolbar).
-            </li>
-          </ul>
+        {/* Concept note — what this assignment demonstrates */}
+        <section className="mt-10 rounded-xl border border-white/8 bg-surface p-5">
+          <h2 className="text-sm font-semibold text-ink">About This Demo</h2>
+          <dl className="mt-3 grid gap-4 sm:grid-cols-3">
+            <div>
+              <dt className="inline-block rounded-md border border-white/10 bg-surface-2 px-1.5 py-0.5 font-mono text-[12px] text-ink">
+                useRef
+              </dt>
+              <dd className="mt-1.5 text-[13px] leading-5 text-ink-2">
+                The dropdown is focused again right after a clock is added.
+              </dd>
+            </div>
+            <div>
+              <dt className="inline-block rounded-md border border-white/10 bg-surface-2 px-1.5 py-0.5 font-mono text-[12px] text-ink">
+                useClockTick
+              </dt>
+              <dd className="mt-1.5 text-[13px] leading-5 text-ink-2">
+                A custom hook keeps one shared timer that every clock reads
+                from.
+              </dd>
+            </div>
+            <div>
+              <dt className="inline-block rounded-md border border-white/10 bg-surface-2 px-1.5 py-0.5 font-mono text-[12px] text-ink">
+                useCallback&nbsp;+&nbsp;React.memo
+              </dt>
+              <dd className="mt-1.5 text-[13px] leading-5 text-ink-2">
+                Stable handlers let memoized children skip re-renders while the
+                clocks tick.
+              </dd>
+            </div>
+          </dl>
         </section>
       </main>
 
-      {/* ===== Footer — author details ===== */}
-      <footer className="mx-auto mt-10 max-w-6xl px-4 text-center text-xs text-gray-400">
-        <p>
-          WPT Assignment 7 · React JS Hooks · Prathamesh Jadhav — Roll No. 16 ·
-          CDAC ATC Nashik
-        </p>
+      {/* ===== Footer ===== */}
+      <footer className="border-t border-white/8">
+        <div className="mx-auto flex max-w-5xl flex-col gap-1 px-4 py-6 text-[12px] text-ink-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <p>
+            React Clock App · WPT Assignment 7 — React&nbsp;JS Hooks
+          </p>
+          <p translate="no">
+            Prathamesh Jadhav · Roll No.&nbsp;16 · CDAC ATC Nashik
+          </p>
+        </div>
       </footer>
     </div>
   );
