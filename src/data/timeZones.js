@@ -1,14 +1,10 @@
 // ===== Time zone master data =====
-// Each entry maps a friendly city/country label to an IANA time zone id.
+// Each entry maps a friendly country/city label to a unique IANA time zone id.
 // The id is what Intl.DateTimeFormat needs to show the correct local time.
+// (One Indian entry only — every Indian city shares the single Asia/Kolkata zone.)
 const TIME_ZONES = [
-  // ---- Indian cities ----
-  { label: "Mumbai / Pune (IST)", zone: "Asia/Kolkata" },
-  { label: "Delhi (IST)", zone: "Asia/Kolkata" },
-  { label: "Chennai (IST)", zone: "Asia/Kolkata" },
-  { label: "Kolkata (IST)", zone: "Asia/Kolkata" },
-  { label: "Bengaluru (IST)", zone: "Asia/Kolkata" },
-  { label: "Hyderabad (IST)", zone: "Asia/Kolkata" },
+  // ---- India ----
+  { label: "India (IST) — Mumbai time", zone: "Asia/Kolkata" },
 
   // ---- Asia ----
   { label: "Dubai (GST)", zone: "Asia/Dubai" },
@@ -57,22 +53,18 @@ const TIME_ZONES = [
 
 export default TIME_ZONES;
 
-// ===== Helper: build the dropdown option list from the data above =====
-// Two Indian cities share the "Asia/Kolkata" zone id, so option values are
-// made unique by combining the index with the zone id.
-export function buildZoneOptions(zones) {
-  return zones.map((entry, index) => ({
-    value: `${index}|${entry.zone}`,
-    label: entry.label,
-    zone: entry.zone,
-  }));
-}
-
-// ===== Helper: parse a dropdown value back into { zone, label } =====
-export function parseZoneOption(value, zones) {
-  const [indexText, zone] = value.split("|");
-  const index = Number(indexText);
-  const entry = zones[index];
-  if (!entry || entry.zone !== zone) return null;
-  return { zone: entry.zone, label: entry.label };
+// ===== Helper: get the UTC offset label of a zone, e.g. "GMT+5:30" =====
+// Runs once per clock (while adding it), not on every tick.
+export function getOffsetLabel(timeZone, date = new Date()) {
+  try {
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone,
+      timeZoneName: "shortOffset",
+    }).formatToParts(date);
+    const offsetPart = parts.find((part) => part.type === "timeZoneName");
+    return offsetPart ? offsetPart.value : "";
+  } catch (error) {
+    console.error("getOffsetLabel failed for", timeZone, error);
+    return "";
+  }
 }
