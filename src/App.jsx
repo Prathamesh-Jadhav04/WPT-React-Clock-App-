@@ -18,12 +18,37 @@ import TimezoneToolbar from "./Components/TimezoneToolbar.jsx";
 import ClockCard from "./Components/ClockCard.jsx";
 import { ClockIcon, TriangleMark } from "./Components/Icons.jsx";
 
+// localStorage key for persisting added clocks across reloads (ALL-CAPS const)
+const STORAGE_KEY = "clock-app:clocks:v1";
+
+// Load persisted clocks once on first render — defensive pattern:
+// try/catch around JSON.parse, Array.isArray check, per-item shape validation
+function loadSavedClocks() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return [];
+    const parsed = JSON.parse(saved);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (clock) =>
+        clock &&
+        typeof clock.id === "string" &&
+        typeof clock.label === "string" &&
+        typeof clock.zone === "string" &&
+        typeof clock.offset === "string"
+    );
+  } catch (error) {
+    console.error("Could not load saved clocks:", error);
+    return [];
+  }
+}
+
 export default function App() {
   // ===== Objective 5: custom hook gives one Date that ticks every second =====
   const now = useClockTick(1000);
 
   // ===== App state =====
-  const [clocks, setClocks] = useState([]); // added clocks
+  const [clocks, setClocks] = useState(loadSavedClocks); // added clocks (restored)
   const [selectedZone, setSelectedZone] = useState(""); // dropdown value
   // Feedback message: text + kind ("ok" | "warn") so status never relies on
   // color alone (icon + wording carry the same meaning)
@@ -120,6 +145,16 @@ export default function App() {
         ? `World Clocks (${clocks.length}) — React Clock App`
         : "World Clocks — React Clock App";
   }, [clocks.length]);
+
+  // Persist added clocks on every change (state → save → render cycle).
+  // A blocked/full storage must never break the dashboard — just log it.
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(clocks));
+    } catch (error) {
+      console.error("Could not save clocks:", error);
+    }
+  }, [clocks]);
 
   return (
     <div className="min-h-screen bg-canvas font-sans">

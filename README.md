@@ -106,10 +106,14 @@ npm run lint
 
 ## Data Storage
 
-No database or localStorage is used — clocks live in React state for the
-session. Adding a clock stores `{ id, label, zone, offset }` where `id` is the
-unique IANA zone id, which doubles as the duplicate check key and the list
-`key` prop.
+No database is used. Added clocks are persisted in the browser's
+`localStorage` under the key `clock-app:clocks:v1`, so a reload restores the
+dashboard. Loading is defensive (taught pattern): `try/catch` around
+`JSON.parse`, an `Array.isArray` check, and per-item shape validation filter
+out stale or corrupted data; a failed save is logged and ignored instead of
+breaking the UI. Each clock stores `{ id, label, zone, offset }` where `id` is
+the unique IANA zone id, which doubles as the duplicate check key and the
+list `key` prop.
 
 ## Implementation Highlights
 
