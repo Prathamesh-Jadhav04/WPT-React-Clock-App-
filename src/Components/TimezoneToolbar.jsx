@@ -13,7 +13,7 @@
 //   - aria-live="polite" region announces add/remove feedback
 //   - placeholder ends with the ellipsis character (…)
 //   - buttons keep ≥24 px hit targets, touch-action: manipulation
-import React, { useRef } from "react";
+import React, { useCallback, useRef } from "react";
 
 function TimezoneToolbar({
   zones,
@@ -30,6 +30,14 @@ function TimezoneToolbar({
   // If it stops increasing while the clocks keep ticking, memoization works.
   const renderCount = useRef(0);
   renderCount.current += 1;
+
+  // Enter submits the focused control (WAI-ARIA form pattern).
+  // Deliberately on keyUP, not keydown: the native select commits the
+  // highlighted option during keydown and fires change before keyup, so by
+  // the time this runs, onAdd already sees the freshly selected zone.
+  const handleSelectKeyUp = useCallback(() => {
+    onAdd();
+  }, [onAdd]);
 
   return (
     <section
@@ -52,6 +60,7 @@ function TimezoneToolbar({
               ref={selectRef}
               value={selectedZone}
               onChange={onZoneChange}
+              onKeyUp={handleSelectKeyUp}
               autoComplete="off"
               className="h-10 w-full appearance-none rounded-md border border-white/12 bg-surface px-3 pr-9 text-base text-ink transition-colors duration-200 hover:border-white/25 focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 md:text-sm [&>option]:bg-surface [&>option]:text-ink"
             >
