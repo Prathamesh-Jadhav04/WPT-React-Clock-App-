@@ -113,6 +113,14 @@ export default function App() {
     return () => clearTimeout(timerId);
   }, [message]);
 
+  // Accurate page title — reflect the current clock count in the browser tab
+  useEffect(() => {
+    document.title =
+      clocks.length > 0
+        ? `World Clocks (${clocks.length}) — React Clock App`
+        : "World Clocks — React Clock App";
+  }, [clocks.length]);
+
   return (
     <div className="min-h-screen bg-canvas font-sans">
       {/* Skip link — jumps keyboard users straight past the top bar */}
