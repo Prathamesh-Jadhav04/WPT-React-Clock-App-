@@ -1,11 +1,61 @@
 /* ===== Tailwind CSS v4 — import based setup (no tailwind.config.js needed) ===== */
 @import "tailwindcss";
 
-/* ===== Custom keyframes taught in CSS3 — fade-up entrance for clock cards ===== */
-@keyframes fadeUp {
+/* ===== Vercel-style design tokens (dark theme) ===== */
+@theme {
+  /* Geist type family — loaded from Google Fonts in index.html */
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
+    monospace;
+
+  /* Color tokens matching the Vercel webapp palette */
+  --color-canvas: #000000; /* page background */
+  --color-surface: #0a0a0a; /* cards, inputs */
+  --color-surface-2: #111111; /* hover surface, code chips */
+  --color-ink: #ededed; /* primary text */
+  --color-ink-2: #a1a1a1; /* secondary text */
+  --color-ink-3: #7d7d7d; /* tertiary text */
+  --color-brand: #0070f3; /* Vercel blue — focus rings, links */
+  --color-warn: #f5a623; /* warning text */
+  --color-ok: #57ab5a; /* success text + live dot */
+}
+
+/* ===== Base layer — browser chrome, scroll, tap behavior ===== */
+@layer base {
+  html {
+    color-scheme: dark; /* scrollbars/device UI match the dark theme */
+    -webkit-tap-highlight-color: rgba(0, 112, 243, 0.15);
+  }
+
+  /* Suppress desktop rubber-band bounce; keep it on touch devices */
+  @media (pointer: fine) {
+    html {
+      overscroll-behavior: none;
+    }
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Generous, non-zooming touch targets on interactive elements */
+  button,
+  select,
+  a {
+    touch-action: manipulation;
+  }
+}
+
+/* ===== Subtle entrance for newly added cards =====
+   Compositor-friendly (opacity + transform only), ~250ms, interruptible. */
+@keyframes cardIn {
   from {
     opacity: 0;
-    transform: translateY(24px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -13,22 +63,33 @@
   }
 }
 
-/* Card entrance animation — applied to every newly added clock */
 .clock-card-in {
-  animation: fadeUp 0.5s ease both;
+  animation: cardIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* Subtle pulse ring behind the ticking time display */
-@keyframes softPulse {
+/* ===== Gentle pulse for the "live" status dot in the top bar ===== */
+@keyframes livePulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.25);
+    opacity: 1;
   }
   50% {
-    box-shadow: 0 0 0 10px rgba(249, 115, 22, 0);
+    opacity: 0.35;
   }
 }
 
-.clock-pulse {
-  animation: softPulse 2s ease-in-out infinite;
+.live-dot {
+  animation: livePulse 2s ease-in-out infinite;
+}
+
+/* ===== Honor prefers-reduced-motion — disable all decorative motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
