@@ -15,7 +15,7 @@ The project exists to demonstrate three important React concepts:
 
 ## Features
 
-- Dropdown with selectable world time zones (India + Asia + Europe + Africa + Americas + Oceania).
+- Dropdown with 35 selectable world time zones (India + Asia + Europe + Africa + Americas + Oceania).
 - **+ Add Clock** button places the selected clock on the dashboard.
 - All clocks update in real time, every second (single shared timer from the custom hook).
 - **useRef** re-focuses the dropdown immediately after a clock is added.
@@ -23,15 +23,16 @@ The project exists to demonstrate three important React concepts:
 - **useCallback** keeps `onZoneChange` / `onAdd` / `onRemove` / `onClear` handler identities stable.
 - **React.memo** wraps `TimezoneToolbar` and `ClockCard`; the toolbar shows a render counter that freezes while the clocks keep ticking — a visible proof of reduced re-renders.
 - Duplicate clocks are blocked with a friendly warning; each card has a remove button and a **Clear All** action exists.
-- Empty-selection and unknown-zone validation with feedback messages.
+- Empty-selection and unknown-zone validation with feedback messages announced via `aria-live="polite"`.
 - Responsive dashboard: 1 column on mobile, 2 on tablet, 3 on large screens (Tailwind CSS v4).
-- Modern styling: gradient background, glass-style cards, fade-up entrance animation.
+- **Vercel-inspired UI** (see “UI Guidelines Applied” below): black canvas, Geist / Geist Mono typography, crisp translucent borders, `:focus-visible` rings, tabular-nums clock digits, designed empty state, skip link, and reduced-motion support.
 
 ## Technology Stack
 
 - **React 19** (functional components only)
 - **Vite 6** (dev server + production build)
 - **Tailwind CSS v4** via the `@tailwindcss/vite` plugin (import-based setup, no config file)
+- **Geist & Geist Mono** fonts, loaded from Google Fonts with `preconnect`
 - **ESLint 9** flat config with `react-hooks` + `react-refresh` plugins
 - Browser `Intl.DateTimeFormat` for per-zone time/date/offset formatting (no extra libraries)
 
@@ -47,15 +48,40 @@ react-clock-app/
 └── src/
     ├── main.jsx                     ← createRoot(...).render(<App/>)
     ├── App.jsx                      ← state, useRef, useCallback handlers, dashboard
-    ├── style.css                    ← @import "tailwindcss" + @keyframes animations
+    ├── style.css                    ← @import "tailwindcss" + Vercel design tokens
     ├── data/
-    │   └── timeZones.js             ← IANA zones + helpers
+    │   └── timeZones.js             ← 35 IANA zones + getOffsetLabel() helper
     ├── hooks/
     │   └── useClockTick.js          ← custom hook: Date ticking every second
     └── Components/
-        ├── TimezoneToolbar.jsx      ← dropdown + Add/Clear (render counter)
-        └── ClockCard.jsx            ← clock card (time, date, offset, remove)
+        ├── TimezoneToolbar.jsx      ← memoized dropdown + Add/Clear (render counter)
+        └── ClockCard.jsx            ← memoized clock card (time, date, offset, remove)
 ```
+
+## UI Guidelines Applied (Vercel Web Interface Guidelines)
+
+The interface was restyled to match the Vercel webapp using the published
+[web-interface-guidelines](https://vercel.com/design/guidelines). Key
+applications:
+
+| Guideline | Implementation |
+| --- | --- |
+| Clear focus (`:focus-visible`) | Blue `#0070f3` focus rings on select, buttons, and icon buttons — pointer users see no distraction |
+| Keyboard works everywhere | Skip-to-content link, semantic `header`/`main`/`footer`, hierarchical headings, native `button`/`label`/`select` |
+| Announce async updates | `aria-live="polite"` region around add/remove/duplicate feedback |
+| Redundant status cues | Warnings use icon + text + color, never color alone |
+| Icon-only buttons are named | Remove buttons carry `aria-label` + `title` |
+| Tabular numbers for comparisons | Geist Mono + `font-variant-numeric: tabular-nums` on every clock digit (no width jitter between ticks) |
+| Never `transition: all` | Only `colors` / `transform` properties are animated, listed explicitly |
+| Honor `prefers-reduced-motion` | Global media query disables decorative animation |
+| Layered shadows & crisp borders | Two-layer card shadow + semi-transparent `white/8` borders that brighten on hover |
+| Nested radii | Cards 12 px, controls 6 px, badges full — child radius ≤ parent |
+| Windows `<select>` background | Explicit `background-color` + `color` (and `option` styling) |
+| Mobile input size | Select uses 16 px text on mobile, 14 px from `md:` up (no iOS zoom) |
+| Theme matches browser UI | `<meta name="theme-color" content="#000000">` + `color-scheme: dark` |
+| Copywriting (Vercel voice) | Title Case headings/buttons, active voice, ellipsis character `…`, numerals for counts, positive error messages that guide the exit |
+| Designed empty states | “No Clocks Yet” state with icon and a clear next step (no dead ends) |
+| Preload fonts | `preconnect` to `fonts.googleapis.com` + `fonts.gstatic.com` before the Geist stylesheet |
 
 ## Installation and Execution
 
@@ -93,13 +119,15 @@ unique IANA zone id, which doubles as the duplicate check key and the list
 - **useRef focus flow** — `zoneSelectRef` is created in `App`, passed to
   `TimezoneToolbar` as `selectRef`, and `zoneSelectRef.current.focus()` runs
   right after a successful add.
-- **useCallback handlers** — stable handler identities are what allow
-  `React.memo` to skip re-renders of unchanged children while `App` re-renders
-  every second.
+- **useCallback handlers** — `handleAdd` depends on `[selectedZone, clocks]`;
+  the single-argument handlers depend on `[]`. Because `App` re-renders every
+  second, these stable references are what allow `React.memo` to skip
+  re-renders of unchanged children.
 - **Duplicate prevention** — `clocks.some(clock => clock.zone === selectedZone)`
   before appending; the message area explains why nothing was added.
 - **Intl formatting** — `toLocaleTimeString` / `toLocaleDateString` with the
-  `timeZone` option handle DST-correct local times.
+  `timeZone` option handle DST-correct local times; `timeZoneName:
+  "shortOffset"` produces labels like `GMT+5:30`.
 
 ## Learning Outcomes
 
